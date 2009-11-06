@@ -1,6 +1,8 @@
 class Notice < ActiveRecord::Base
   belongs_to :target, :polymorphic => true
 
+  validates_uniqueness_of :user_id, :scope => [:target_id, :target_type]
+
   # TODO 複雑過ぎるのでもっと簡単にして回帰テストを書きたい
   def self.systems user
     antennas = []
