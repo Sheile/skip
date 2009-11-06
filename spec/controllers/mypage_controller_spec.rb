@@ -246,7 +246,7 @@ describe MypageController, 'mypage > home 関連' do
       controller.stub!(:paginate).and_return(@entries)
     end
     it '@antenna_entryが設定されること' do
-      controller.should_receive(:antenna_entry).with(params[:antenna_id], params[:read]).and_return(@antenna_entry)
+      controller.should_receive(:antenna_entry).with(params[:target_type], params[:target_id], params[:read]).and_return(@antenna_entry)
       get :entries_by_antenna
       assigns[:antenna_entry].should == @antenna_entry
     end
@@ -306,7 +306,7 @@ describe MypageController, 'mypage > home 関連' do
         MypageController::AntennaEntry.should_receive(:new).with(@user, true).and_return(@antenna_entry)
       end
       it 'AntennaEntryのインスタンスが返ること' do
-        @controller.send(:antenna_entry, nil, true).should == @antenna_entry
+        @controller.send(:antenna_entry, nil, nil, true).should == @antenna_entry
       end
     end
     describe '第一引数が空の場合' do
@@ -315,17 +315,17 @@ describe MypageController, 'mypage > home 関連' do
         MypageController::AntennaEntry.should_receive(:new).with(@user, true).and_return(@antenna_entry)
       end
       it 'AntennaEntryのインスタンスが返ること' do
-        @controller.send(:antenna_entry, '', true).should == @antenna_entry
+        @controller.send(:antenna_entry, '', 1, true).should == @antenna_entry
       end
     end
     describe '第一引数が数値に解釈できる文字列の場合' do
       before do
         @antenna_entry = stub('antenna_entry')
-        @key = '1'
-        MypageController::UserAntennaEntry.should_receive(:new).with(@user, @key.to_i, true).and_return(@antenna_entry)
+        @key = 'user'
+        MypageController::UserAntennaEntry.should_receive(:new).with(@user, @key, 1, true).and_return(@antenna_entry)
       end
       it 'UserAntennaEntryのインスタンスが返ること' do
-        @controller.send(:antenna_entry, @key, true).should == @antenna_entry
+        @controller.send(:antenna_entry, @key, 1, true).should == @antenna_entry
       end
     end
     describe '第一引数が数値に解釈できない文字列の場合' do
@@ -338,7 +338,7 @@ describe MypageController, 'mypage > home 関連' do
           MypageController::SystemAntennaEntry.should_receive(:new).with(@user, @key, true).and_return(@antenna_entry)
         end
         it 'SystemAntennaEntryのインスタンスが返ること' do
-          @controller.send(:antenna_entry, @key, true).should == @antenna_entry
+          @controller.send(:antenna_entry, @key, nil, true).should == @antenna_entry
         end
       end
       describe 'システムアンテナとして無効な文字列の場合' do
@@ -682,7 +682,7 @@ describe MypageController, '#antenna_entry_title' do
         it { @controller.send(:antenna_entry_title, stub('entry_antenna', :antenna => nil, :key => 'message')).should == 'Notices for you' }
         it { @controller.send(:antenna_entry_title, stub('entry_antenna', :antenna => nil, :key => 'comment')).should == 'Entries you have made comments'}
         it { @controller.send(:antenna_entry_title, stub('entry_antenna', :antenna => nil, :key => 'bookmark')).should == 'Entries bookmarked by yourself' }
-        it { @controller.send(:antenna_entry_title, stub('entry_antenna', :antenna => nil, :key => 'group')).should == 'Posts in the groups joined' }
+        it { @controller.send(:antenna_entry_title, stub('entry_antenna', :antenna => nil, :key => 'group')).should == 'List of unread entries' }
       end
       describe 'システムアンテナではない場合' do
         it { @controller.send(:antenna_entry_title, stub('entry_antenna', :antenna => nil, :key => nil)).should == 'List of unread entries' }

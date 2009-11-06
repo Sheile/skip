@@ -171,7 +171,7 @@ class MypageController < ApplicationController
 
   # アンテナ毎の記事一覧画面を表示
   def entries_by_antenna
-    @antenna_entry = antenna_entry(params[:antenna_id], params[:read])
+    @antenna_entry = antenna_entry(params[:target_type], params[:target_id], params[:read])
     @antenna_entry.title = antenna_entry_title(@antenna_entry)
     if @antenna_entry.need_search?
       @entries = @antenna_entry.scope.order_new.paginate(:page => params[:page], :per_page => 20)
@@ -474,13 +474,16 @@ class MypageController < ApplicationController
     return year, month, day
   end
 
-  def antenna_entry(key, read = true)
+  def antenna_entry(key, target_id = nil, read = true)
     unless key.blank?
-      begin
-        key = Integer(key)
-        UserAntennaEntry.new(current_user, key, read)
-      rescue ArgumentError
-        if %w(message comment bookmark group).include?(key)
+      if target_id
+        if %w(user group).include?(key)
+          UserAntennaEntry.new(current_user, key, target_id, read)
+        else
+          raise ActiveRecord::RecordNotFound
+        end
+      else
+        if %w(message comment bookmark joined_group).include?(key)
           SystemAntennaEntry.new(current_user, key, read)
         else
           raise ActiveRecord::RecordNotFound
@@ -523,7 +526,7 @@ class MypageController < ApplicationController
               when @key == 'message'  then BoardEntry.accessible(@current_user).notice
               when @key == 'comment'  then scope_for_entries_by_system_antenna_comment
               when @key == 'bookmark' then scope_for_entries_by_system_antenna_bookmark
-              when @key == 'group'    then scope_for_entries_by_system_antenna_group
+              when @key == 'joined_group'    then scope_for_entries_by_system_antenna_group
               end
 
       scope = scope.unread(@current_user) unless @read
@@ -572,28 +575,22 @@ class MypageController < ApplicationController
   end
 
   class UserAntennaEntry < AntennaEntry
-    def initialize(current_user, key, read = true)
+    def initialize(current_user, type, id, read = true)
       @current_user = current_user
-      @key = key
+      @type = type
       @read = read
-      @antenna = Antenna.find(@key)
-      @title = @antenna.name
+      @owner = type.humanize.constantize.find id
+      @title = @owner.name
     end
 
     def scope
-      symbols, keyword = @antenna.get_search_conditions
-      find_params = BoardEntry.make_conditions(@current_user.belong_symbols, :symbols => symbols, :keyword => keyword)
-      scope = BoardEntry.scoped(
-        :conditions=> find_params[:conditions],
-        :include => find_params[:include]
-      )
+      scope = BoardEntry.accessible(@current_user).owned(@owner)
       scope = scope.unread(@current_user) unless @read
       scope
     end
 
     def need_search?
-      @antenna_items = @antenna.antenna_items
-      @antenna_items && @antenna_items.size > 0
+      true
     end
   end
 
@@ -856,7 +853,7 @@ class MypageController < ApplicationController
       when key == 'message'  then _("Notices for you")
       when key == 'comment'  then _("Entries you have made comments")
       when key == 'bookmark' then _("Entries bookmarked by yourself")
-      when key == 'group'    then _("Posts in the groups joined")
+      when key == 'joined_group'    then _("Posts in the groups joined")
       else
         _('List of unread entries')
       end
