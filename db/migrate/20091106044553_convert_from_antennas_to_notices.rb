@@ -20,7 +20,10 @@ class ConvertFromAntennasToNotices < ActiveRecord::Migration
     raise ActiveRecord::IrreversibleMigration
   end
 
-  class Antenna < ActiveRecord::Base
+  class ::AntennaItem < ActiveRecord::Base
+  end
+
+  class ::Antenna < ActiveRecord::Base
     belongs_to :user
     has_many :antenna_items
   end
