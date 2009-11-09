@@ -429,10 +429,7 @@ class User < ActiveRecord::Base
   # プロフィールボックスに表示するユーザの情報
   def info
     @info ||= { :access_count => self.user_access ? self.user_access.access_count : 0,
-                :subscriber_count => AntennaItem.count(
-                  :conditions => ["antenna_items.value = ?", self.symbol],
-                  :select => "distinct user_id",
-                  :joins => "left outer join antennas on antenna_id = antennas.id"),
+                :subscriber_count => Notice.subscribed(self).count,
                 :blog_count => BoardEntry.count(:conditions => ["user_id = ? and entry_type = ?", self.id, "DIARY"]),
                 :using_day => ((Time.now - self.created_on) / (60*60*24)).to_i + 1 }
   end

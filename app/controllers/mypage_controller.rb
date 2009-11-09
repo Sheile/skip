@@ -25,8 +25,7 @@ class MypageController < ApplicationController
 
   verify :method => :post, :only => [ :destroy_portrait, :save_portrait, :update_profile,
                                       :update_message_unsubscribes, :apply_password,
-                                      :add_antenna, :delete_antenna, :delete_antenna_item, :move_antenna_item,
-                                      :change_read_state, :apply_email, :set_antenna_name, :sort_antenna],
+                                      :change_read_state, :apply_email],
          :redirect_to => { :action => :index }
   verify :method => [:post, :put], :only => [ :update_customize], :redirect_to => { :action => :index }
 
@@ -125,8 +124,6 @@ class MypageController < ApplicationController
       render :template => 'pictures/new', :layout => 'layout' and return
     when "manage_customize"
       @user_custom = UserCustom.find_by_user_id(@user.id) || UserCustom.new
-    when "manage_antenna"
-      @antennas = find_antennas
     when "manage_message"
       @unsubscribes = UserMessageUnsubscribe.get_unscribe_array(session[:user_id])
     # TODO #924で画面からリンクをなくした。1.4時点で復活しない場合は削除する
@@ -221,93 +218,6 @@ class MypageController < ApplicationController
     e.backtrace.each { |line| logger.error line}
     render :text => _("Failed to load rss.")
     return false
-  end
-
-  # ================================================================================
-  #  アンテナの整備関連
-  # ================================================================================
-
-  def set_antenna_name
-    id = params[:element_id] ? params[:element_id].split('_')[3] : nil
-
-    antenna = Antenna.find(id)
-    unless antenna.user_id == session[:user_id]
-      render :text => ""
-      return false
-    end
-    antenna.name = params[:value]
-    if antenna.save
-      # Inplaceエディタ内で直接ここで返した文字列を表示するためにHTMLエスケープする
-      render :text => ERB::Util.html_escape(antenna.name)
-    else
-      render :text => antenna.errors.full_messages.first, :status => 500
-    end
-  end
-
-  def add_antenna
-    Antenna.create(:user_id => session[:user_id], :name => params[:antenna_name])
-    render :partial => 'antennas', :object => find_antennas
-  end
-
-  def delete_antenna
-    antenna = Antenna.find(params[:antenna_id])
-    unless antenna.user_id == session[:user_id]
-      render :text => ""
-      return false
-    end
-    antenna.destroy
-    render :partial => 'antennas', :object => find_antennas
-  end
-
-  def delete_antenna_item
-    item = AntennaItem.find(params[:antenna_item_id])
-    unless item.antenna.user_id == session[:user_id]
-      render :text => ""
-      return false
-    end
-    item.destroy
-    render :partial => 'antennas', :object => find_antennas
-  end
-
-  def move_antenna_item
-    antenna_item = AntennaItem.find(params[:antenna_item_id])
-    antenna_item.antenna_id = params[:antenna_id]
-    if antenna_item.save
-      render :partial => 'antennas', :object => find_antennas
-    else
-      render :text => antenna_item.errors.full_messages, :status => :bad_request
-    end
-  end
-
-  def sort_antenna
-    antennas = Antenna.find(:all,
-                            :conditions => ["user_id = ?", session[:user_id]],
-                            :order => "position")
-    target_pos = Integer(params[:target_pos])
-
-    antennas.each_with_index do |antenna, index|
-      if antenna.id.to_s == params[:source_antenna_id]
-        if target_pos > antenna.position
-          antennas.insert(target_pos, antenna)
-          antennas.delete_at(index)
-        else
-          antennas.delete_at(index)
-          antennas.insert(target_pos-1, antenna)
-        end
-        break
-      end
-    end
-    antennas.each_with_index do |antenna, index|
-      if antenna && (antenna.position != (index + 1))
-        antenna.position = index + 1;
-        antenna.save
-      end
-    end
-    render :partial => 'antennas', :object => find_antennas
-  end
-
-  def antenna_list
-    render :text => current_user_antennas_as_json
   end
 
   # ================================================================================
@@ -457,10 +367,6 @@ class MypageController < ApplicationController
 
   def setup_layout
     @main_menu = @title = _('My Page')
-  end
-
-  def find_antennas
-    Antenna.find_with_counts current_user
   end
 
   # 日付情報を解析して返す。
@@ -724,15 +630,6 @@ class MypageController < ApplicationController
       recent_bbs << find_recent_bbs_as_locals(category.code.downcase, options)
     end
     recent_bbs
-  end
-
-  def current_user_antennas_as_json
-    antennas = Antenna.all(:conditions => ["user_id = ?" , current_user.id])
-    result = {
-      :antenna_list => antennas.map do |antenna|
-        { :name => antenna.name, :url => url_for(:controller => :feed, :action => :user_antenna, :id => antenna.id) }
-      end
-    }.to_json
   end
 
   def unifed_feeds

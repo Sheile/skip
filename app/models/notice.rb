@@ -3,6 +3,10 @@ class Notice < ActiveRecord::Base
 
   validates_uniqueness_of :user_id, :scope => [:target_id, :target_type]
 
+  named_scope :subscribed, proc { |owner|
+    { :conditions => ['target_id = ? AND target_type = ?', owner.id, owner.class.name] }
+  }
+
   # TODO 複雑過ぎるのでもっと簡単にして回帰テストを書きたい
   def self.systems user
     antennas = []
@@ -49,6 +53,6 @@ class Notice < ActiveRecord::Base
   end
 
   def unread_count user
-    BoardEntry.accessible(user).owned(target).unread(user).count
+    @unread_count ||= BoardEntry.accessible(user).owned(target).unread(user).count
   end
 end
