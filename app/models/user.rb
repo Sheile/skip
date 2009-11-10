@@ -486,6 +486,10 @@ class User < ActiveRecord::Base
     self.group_symbols.include? group.symbol
   end
 
+  def to_param
+    uid
+  end
+
 protected
   # TODO: self.make_conditionsメソッドは使ってなさそう確認して消す
   @@search_cond_keys = [:name, :section, :email]

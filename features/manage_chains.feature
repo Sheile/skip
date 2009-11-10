@@ -36,3 +36,17 @@ Feature: 紹介文の管理
     When "alice"でログインする
 
     Then "あなたの紹介文が追加されました！"と表示されていること
+
+  Scenario: 紹介文を削除する
+    Given 以下の紹介文を作成する:
+      |from_user|comment      |to_user|
+      |a_user   |Aliceです。  |alice  |
+
+    When "a_user"でログインする
+    And "aliceユーザのプロフィールページ"にアクセスする
+    And "紹介文の変更"リンクをクリックする
+    And "[削除]"リンクをクリックする
+
+    Then flashメッセージに"紹介文を削除しました"と表示されていること
+
+

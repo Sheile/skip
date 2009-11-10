@@ -80,7 +80,7 @@ module UserHelper
   end
 
   def load_user
-    if @user = User.find_by_uid(params[:uid])
+    if @user = current_target_user
       @user.mark_track current_user.id if @user.id != current_user.id
     else
       flash[:warn] = _('User does not exist.')

@@ -17,10 +17,6 @@ class UserController < ApplicationController
   include UserHelper
 
   before_filter :load_user, :setup_layout
-  after_filter :make_chain_message, :only => [ :create_chain, :update_chain ]
-
-  verify :method => :post, :only => [ :create_chain, :update_chain ],
-         :redirect_to => { :action => :index }
 
   # tab_menu
   def show
@@ -123,48 +119,6 @@ class UserController < ApplicationController
     flash.now[:notice] = _('No matching groups found.') if @groups.empty?
   end
 
-  # tab_menu
-  def new_chain
-    @chain = Chain.new
-    show_new_chain
-  end
-
-  # tab_menu
-  def edit_chain
-    @chain = Chain.find_by_from_user_id_and_to_user_id(session[:user_id], @user.id)
-    show_edit_chain
-  end
-
-  # post_action
-  def create_chain
-    @chain = Chain.new( :from_user_id => session[:user_id],
-                        :to_user_id => @user.id,
-                        :comment => params[:chain][:comment])
-    if @chain.save
-      flash[:notice] = _('Introduction was created successfully.')
-      redirect_to_index
-    else
-      show_new_chain
-    end
-  end
-
-  # post_action
-  def update_chain
-    @chain = Chain.find_by_from_user_id_and_to_user_id(session[:user_id], @user.id)
-
-    if params[:chain][:comment].empty?
-      @chain.destroy
-      @chain = nil
-      flash[:notice] = _('Introduction was deleted successfully.')
-      redirect_to_index
-    elsif @chain.update_attributes(params[:chain])
-      flash[:notice] = _('Introduction was updated successfully.')
-      redirect_to_index
-    else
-      show_edit_chain
-    end
-  end
-
 private
   def setup_layout
     @title = user_title @user
@@ -180,18 +134,6 @@ private
     redirect_to :action => 'show', :uid => @user.uid
   end
 
-  def show_new_chain
-    @submit_action = 'create_chain'
-    @submit_name = _('Create')
-    render :action=>'new_edit_chain'
-  end
-
-  def show_edit_chain
-    @submit_action = 'update_chain'
-    @submit_name = _('Update')
-    render :action=>'new_edit_chain'
-  end
-
   def setup_blog_left_box options
     find_params = BoardEntry.make_conditions(login_user_symbols, options)
     # カテゴリ
@@ -204,12 +146,6 @@ private
                                       :group => "year, month",
                                       :order => "year desc, month desc",
                                       :joins => "LEFT OUTER JOIN entry_publications ON entry_publications.board_entry_id = board_entries.id")
-  end
-
-  def make_chain_message
-    return unless @chain
-    link_url = url_for(:controller => 'user', :uid => @user.uid, :action => 'social', :menu => 'social_chain')
-    Message.save_message("CHAIN", @user.id, link_url)
   end
 
   def prepare_chain against = false
