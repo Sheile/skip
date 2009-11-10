@@ -34,10 +34,8 @@ class ChainsController < ApplicationController
   end
 
   def create
-    @chain = current_user.follow_chains.build(
-      :to_user_id => current_target_user.id,
-      :comment => params[:chain][:comment]
-    )
+    @chain = current_user.follow_chains.build(params[:chain])
+    @chain.to_user = current_target_user
 
     respond_to do |format|
       if @chain.save
@@ -57,7 +55,7 @@ class ChainsController < ApplicationController
     @chain = current_chain
 
     respond_to do |format|
-      if @chain.update_attributes(:comment => params[:chain][:comment])
+      if @chain.update_attributes(params[:chain])
         format.html do
           flash[:notice] = _('Introduction was updated successfully.')
           redirect_to current_target_user_url
