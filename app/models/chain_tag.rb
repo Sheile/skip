@@ -17,15 +17,17 @@ class ChainTag < ActiveRecord::Base
   belongs_to :chain
   belongs_to :tag
 
-  def self.tags_used_to target_user, except_user
-    Tag.against_chains_by(target_user).except_follow_chains_by(except_user).order_new.map{|t| ERB::Util.h(t.name) }
+  def self.tags_used_to target_user, except_user = nil
+    scope = Tag.against_chains_by(target_user)
+    scope = scope.except_follow_chains_by(except_user) if except_user
+    scope.order_new
   end
 
   def self.popular_tags_used_by_only user, limit = 20
-    Tag.follow_chains_by(user).order_new.limit(limit).map{|t| ERB::Util.h(t.name) }
+    Tag.follow_chains_by(user).order_new.limit(limit)
   end
 
   def self.popular_tags_used_by_except user, limit = 10
-    Tag.on_chains.order_popular.except_follow_chains_by(user).limit(limit).map{|t| ERB::Util.h(t.name) }
+    Tag.on_chains.order_popular.except_follow_chains_by(user).limit(limit)
   end
 end

@@ -22,9 +22,6 @@ class UserController < ApplicationController
   def show
     # 紹介してくれた人一覧
     @against_chains = @user.against_chains.order_new.limit(5)
-
-    # 他の人からみた・・・
-    @tags = BookmarkComment.get_tagcloud_tags @user.get_postit_url
   end
 
   # tab_menu
@@ -88,9 +85,6 @@ class UserController < ApplicationController
     @menu = params[:menu] || "social_chain"
     partial_name = @menu
 
-    # contents_left -> social_tags
-    @tags = BookmarkComment.get_tagcloud_tags @user.get_postit_url
-
     # contens_right
     case @menu
     when "social_chain"
@@ -98,8 +92,6 @@ class UserController < ApplicationController
     when "social_chain_against"
       prepare_chain true
       partial_name = "social_chain"
-    when "social_postit"
-      prepare_postit
     else
       render_404 and return
     end
@@ -173,26 +165,4 @@ private
 
     flash.now[:notice] = _('There are no introductions.') if @chains.empty?
   end
-
-  def prepare_postit
-    join_state =  "left join bookmark_comment_tags on bookmark_comments.id = bookmark_comment_tags.bookmark_comment_id "
-    join_state << "left join tags on tags.id = bookmark_comment_tags.tag_id "
-
-    conditions = []
-    conditions[0] = "bookmarks.url = ? "
-    conditions << @user.get_postit_url
-    if params[:selected_tag]
-      conditions[0] << " and tags.name = ?"
-      conditions << params[:selected_tag]
-    end
-    @postits = BookmarkComment.find(:all,
-                                    :conditions => conditions,
-                                    :order => "bookmark_comments.updated_on DESC",
-                                    :joins => join_state,
-                                    :include => [ :bookmark, :user ])
-    unless @postits && @postits.size > 0
-      flash.now[:notice] = _('You have no bookmarks currently.')
-    end
-  end
-
 end

@@ -256,6 +256,7 @@ module ApplicationHelper
   end
 
   # タグクラウドを生成する
+  # TODO 単なるTagの配列じゃ駄目で、(:select 'count(tags.id) as count')などとしておかないといけない。呼び出し元で気をつけて配列を作らないといけない部分が微妙。なんとかしたい。
   def tag_cloud(tags, classes = %w(tag1 tag2 tag3 tag4 tag5 tag6))
     max, min = 0, 0
     tags.each do |tag|

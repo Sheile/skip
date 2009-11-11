@@ -25,9 +25,9 @@
 
 <% content_for :javascript_initializers do -%>
     var setupTagComplete = function() {
-        var userTags = <%= ChainTag.tags_used_to(current_target_user, current_user).to_json %>;
-        var otherTags = <%= ChainTag.popular_tags_used_by_except(current_user).to_json %>;
-        var yourTags = <%= ChainTag.popular_tags_used_by_only(current_user).to_json %>;
+        var userTags = <%= ChainTag.tags_used_to(current_target_user, current_user).map{|t| h t.name }.to_json %>;
+        var otherTags = <%= ChainTag.popular_tags_used_by_except(current_user).map{|t| h t.name }.to_json %>;
+        var yourTags = <%= ChainTag.popular_tags_used_by_only(current_user).map{|t| h t.name }.to_json %>;
 
         $j('#user_tags_list').append(createTagsLink(userTags));
         $j('#other_tags_list').append(createTagsLink(otherTags));

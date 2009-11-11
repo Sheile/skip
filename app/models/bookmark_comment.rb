@@ -86,6 +86,7 @@ class BookmarkComment < ActiveRecord::Base
   end
 
   # 他の人からみた・・・のタグクラウド用タグ一覧を返す
+  # TODO まだ数ヶ所残ってるが無くせそうな気がするので見直したい
   def self.get_tagcloud_tags postit_url
     join_state =  "inner join bookmark_comment_tags on bookmark_comment_tags.tag_id = tags.id "
     join_state << "inner join bookmark_comments on bookmark_comments.id = bookmark_comment_tags.bookmark_comment_id "
