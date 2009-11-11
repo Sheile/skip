@@ -24,6 +24,11 @@ Feature: 紹介文の管理
 
     Then "あなたの紹介文が追加されました！"と表示されていること
 
+  Scenario: 紹介文を更新する
+    Given 以下の紹介文を作成する:
+      |from_user|comment      |to_user|
+      |a_user   |Aliceです。  |alice  |
+
     When "a_user"でログインする
     And "aliceユーザのプロフィールページ"にアクセスする
     And "紹介文の変更"リンクをクリックする
@@ -32,10 +37,6 @@ Feature: 紹介文の管理
 
     Then flashメッセージに"紹介文を更新しました"と表示されていること
     And "アリスを宜しくお願いします。"と表示されていること
-
-    When "alice"でログインする
-
-    Then "あなたの紹介文が追加されました！"と表示されていること
 
   Scenario: 紹介文を削除する
     Given 以下の紹介文を作成する:
