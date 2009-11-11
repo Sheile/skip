@@ -85,6 +85,19 @@ class User < ActiveRecord::Base
     }
   }
 
+  named_scope :tagged, proc { |tag_words, tag_select|
+    return {} unless tag_words
+    tag_select = 'AND' unless tag_select == 'OR'
+    condition_str = ''
+    condition_params = []
+    words = tag_words.split(',')
+    words.each do |word|
+      condition_str << (word == words.last ? ' chains.tags like ?' : " chains.tags like ? #{tag_select}")
+      condition_params << SkipUtil.to_like_query_string(word)
+    end
+    { :conditions => [condition_str, condition_params].flatten, :include => :against_chains }
+  }
+
   named_scope :order_joined, proc { { :order => "group_participations.updated_on DESC" } }
 
   named_scope :limit, proc { |num| { :limit => num } }

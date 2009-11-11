@@ -30,4 +30,8 @@ class ChainTag < ActiveRecord::Base
   def self.popular_tags_used_by_except user, limit = 10
     Tag.on_chains.order_popular.except_follow_chains_by(user).limit(limit)
   end
+
+  def self.popular_tag_names limit = 40
+    Tag.on_chains.order_popular.limit(limit).map(&:name)
+  end
 end

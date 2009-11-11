@@ -27,13 +27,7 @@ module UserHelper
     output = ""
     tags ||= ChainTag.tags_used_to(user).all(:select => '*, count(tags.id) as count')
     tag_cloud tags do |name, count, css_class|
-      if params[:selected_tag] == name
-        output << '<span style="background-color: yellow;">'
-        output << link_to(name, {:action => :social, :uid => user.uid, :menu => 'social_postit'}, :class => css_class)
-        output << '</span>'
-      else
-        output << link_to(name, {:action => :social, :uid => user.uid, :menu => 'social_postit', :selected_tag => name}, :class => css_class)
-      end
+      output << link_to(name, users_path(:tag_words => name), :class => css_class)
       output << "<span style='color: silver; font-size: 10px;'>(#{count})</span> "
     end
     output
