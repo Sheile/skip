@@ -378,8 +378,6 @@ private
 
     if bookmark.is_type_page?
       link_to "#{icon_tag('report_link')} #{h title}", "#{relative_url_root}#{bookmark.escaped_url}", :title => title
-    elsif bookmark.is_type_user?
-      link_to "#{icon_tag('user')} #{h title}", "#{relative_url_root}#{bookmark.escaped_url}", :title => title
     else
       link_to "#{icon_tag('world_link')} #{h truncate(title, :length => 115)}", bookmark.escaped_url, :title => title, :target => "_blank"
     end
