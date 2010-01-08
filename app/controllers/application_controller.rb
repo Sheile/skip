@@ -37,8 +37,6 @@ class ApplicationController < ActionController::Base
   end
 
   before_filter :sso, :login_required, :prepare_session
-  # FIXME: 全体に発行する必要はない。Messageが削除されるアクションのみに制限すべき。
-  after_filter  :remove_message
 
   init_gettext "skip" if defined? GetText
 
@@ -80,15 +78,9 @@ protected
     return true
   end
 
-  def remove_message
-    return true unless logged_in?
-
-    Message.find_all_by_user_id(current_user.id).each do |message|
-      # TODO: ver1.0のデータ構造との兼ね合いで URL全体 と PATHの部分 のみの両方でマッチングしているが
-      #       ver1.2とかになると URL全体 だけで判断すればよい
-      if message.link_url == request.request_uri or message.link_url == request.url
-        message.destroy
-      end
+  def remove_system_message
+    if sm = current_user.system_messages.find_by_id(params[:system_message_id])
+      sm.destroy
     end
   end
 
