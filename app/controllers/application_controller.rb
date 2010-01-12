@@ -93,7 +93,7 @@ protected
   end
 
   def remove_system_message
-    if sm = current_user.system_messages.find_by_id(params[:system_message_id])
+    if params[:system_message_id] && sm = current_user.system_messages.find_by_id(params[:system_message_id])
       sm.destroy
     end
   end
