@@ -20,7 +20,7 @@
         <% SystemMessage::MESSAGE_TYPES.each do |message_type| -%>
           <tr class=<%= cycle 'even', 'odd' %>>
             <td><%= check_box_tag("message_type[#{message_type}]", "ON", !@unsubscribes.include?(message_type)) %></td>
-            <td><%= label_tag("message_type[#{message_type}]", h(_(SystemMessage.processor_class(message_type)::DESCRIPTION))) %></td>
+            <td><%= label_tag("message_type[#{message_type}]", h(_(SystemMessage.description(message_type)))) %></td>
           </tr>
         <% end -%>
       </tbody>
