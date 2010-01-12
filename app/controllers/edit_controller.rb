@@ -324,7 +324,7 @@ private
     new_trackbacks.each do |trackback|
       next if trackback.board_entry.user_id == session[:user_id]
       board_entry = trackback.board_entry
-      SystemMessage.create_message :message_type => 'TRACKBACK', :user_id => board_entry.user_id, :message_hash => {:entry_id => board_entry.id}
+      SystemMessage.create_message :message_type => 'TRACKBACK', :user_id => board_entry.user_id, :message_hash => {:board_entry_id => board_entry.id}
     end
   end
 

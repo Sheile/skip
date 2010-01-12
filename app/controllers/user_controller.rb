@@ -17,7 +17,7 @@ class UserController < ApplicationController
   include UserHelper
 
   before_filter :load_user, :setup_layout
-  after_filter :remove_system_message, :only => %w(social)
+  after_filter :remove_system_message, :only => %w(social blog)
 
   # tab_menu
   def show

@@ -55,7 +55,7 @@ class SystemMessage < ActiveRecord::Base
     def initialize message
       board_entry = BoardEntry.find(message.message_hash[:board_entry_id])
       @message = _("You recieved a comment on your entry [%s]!") % board_entry.title
-      @url_hash = board_entry.get_url_hash
+      @url_hash = board_entry.get_url_hash.merge!(:system_message_id => message.id)
     end
   end
 
@@ -66,7 +66,7 @@ class SystemMessage < ActiveRecord::Base
     def initialize message
       board_entry = BoardEntry.find(message.message_hash[:board_entry_id])
       @message = _("There is a new entry talking about your entry [%s]!") % board_entry.title
-      @url_hash = board_entry.get_url_hash
+      @url_hash = board_entry.get_url_hash.merge!(:system_message_id => message.id)
     end
   end
 

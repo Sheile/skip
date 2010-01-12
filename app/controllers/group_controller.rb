@@ -21,6 +21,8 @@ class GroupController < ApplicationController
                            :update, :destroy, :toggle_owned,
                            :forced_leave_user, :change_participation, :append_user ]
 
+  after_filter :remove_system_message, :only => %w(bbs)
+
   verify :method => :post,
          :only => [ :join, :destroy, :leave, :update, :change_participation,
                     :toggle_owned, :forced_leave_user, :append_user ],
