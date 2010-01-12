@@ -35,6 +35,14 @@ module SystemMessagesHelper
       system_message_links << link_to(icon_tag(system_message_data[:icon]) + system_message_data[:message], system_message_data[:url]) + "(#{link_to 'x', user_system_message_path(current_user, sm), :method => :delete})" unless system_message_data.blank?
     end
 
+    # FIXME 1.7で削除する。migrateによるデータ移行を行わないので。
+    message_array = Message.get_message_array_by_user_id(current_user.id)
+    message_array.each do |message|
+      if message_type = Message::MESSAGE_TYPES[message[:message_type]]
+        system_message_links << link_to(icon_tag(message_type[:icon_name]) + h(message[:message]), message[:link_url])
+      end
+    end
+
     Group.owned(current_user).each do |group|
       unless group.group_participations.waiting.empty?
         system_message_links << link_to(icon_tag('group_add') + _("New user is waiting for approval in %s.") % group.name, {:controller => 'group', :action => 'manage', :gid => group.gid, :menu => 'manage_permit'})
@@ -43,18 +51,18 @@ module SystemMessagesHelper
     @system_message_links = system_message_links
   end
 
-  def system_message_data message
+  def system_message_data message, target_user = current_user
     return nil if message.blank?
     case message.message_type
       when 'COMMENT'
-        board_entry = BoardEntry.accessible(current_user).find(message.message_hash[:board_entry_id])
+        board_entry = BoardEntry.accessible(target_user).find(message.message_hash[:board_entry_id])
         {
           :message => _("You recieved a comment on your entry [%s]!") % board_entry.title,
           :icon => 'comments',
           :url => url_for(board_entry.get_url_hash.merge!(:system_message_id => message.id))
         }
       when 'TRACKBACK'
-        board_entry = BoardEntry.accessible(current_user).find(message.message_hash[:board_entry_id])
+        board_entry = BoardEntry.accessible(target_user).find(message.message_hash[:board_entry_id])
         {
           :message => _("There is a new entry talking about your entry [%s]!") % board_entry.title,
           :icon => 'report_go',
@@ -68,7 +76,7 @@ module SystemMessagesHelper
           :url => url_for({:controller => 'user', :uid => user.uid, :action => 'social', :menu => 'social_chain', :system_message_id => message.id})
         }
       when 'QUESTION'
-        board_entry = BoardEntry.accessible(current_user).question.find(message.message_hash[:board_entry_id])
+        board_entry = BoardEntry.accessible(target_user).question.find(message.message_hash[:board_entry_id])
         {
           :message => _('State of your question [%s] is changed!') % board_entry.title,
           :icon => 'tick',

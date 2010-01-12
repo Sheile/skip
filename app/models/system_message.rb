@@ -19,6 +19,15 @@ class SystemMessage < ActiveRecord::Base
 
   MESSAGE_TYPES = %w(COMMENT TRACKBACK CHAIN QUESTION JOIN LEAVE APPROVAL_OF_JOIN DISAPPROVAL_OF_JOIN FORCED_JOIN FORCED_LEAVE)
 
+  named_scope :unsents, proc {
+    {
+      :conditions => ['send_flag = ?', false],
+      :joins => 'LEFT JOIN user_message_unsubscribes USING(user_id, message_type)'
+    }
+  }
+
+  named_scope :limit, proc { |num| { :limit => num } }
+
   def self.create_message attributes
     # TODO 既に対象のメッセージが作られている場合作られないようにする仕様を入れる。そもそも必要?
     create attributes
